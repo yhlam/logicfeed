@@ -1,0 +1,5 @@
+anyjson==0.3.3
+distribute==0.6.34
+six==1.4.1
+wsgiref==0.1.2
+-e git+git://github.com/yhlam/fbconsole.git#egg=fbconsole
