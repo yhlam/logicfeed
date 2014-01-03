@@ -1,0 +1,4 @@
+-r base.txt
+
+django-extensions==1.2.5
+ipython==1.1.0
