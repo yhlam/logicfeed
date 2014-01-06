@@ -39,6 +39,7 @@ INSTALLED_APPS = (
 
     'south',
     'djcelery',
+    'singleton_models',
 
     'console',
 )
