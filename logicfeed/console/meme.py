@@ -1,4 +1,6 @@
-from itertools import product, count
+from collections import namedtuple
+from io import BytesIO
+from itertools import count, product
 from textwrap import wrap
 
 from PIL import Image, ImageFont, ImageDraw
@@ -7,51 +9,102 @@ from PIL import Image, ImageFont, ImageDraw
 __all__ = ['draw_meme']
 
 
-def draw_meme(output_path, image_path, text, fill_color='white', outline_color='black', border_size=1, font_size=30,
-              font='/usr/share/fonts/truetype/msttcorefonts/arial.ttf', spacing=15, y_offset=30, wrap_width=None):
+Position = namedtuple('Position', ['x', 'y'])
+Text = namedtuple('Text', ['text', 'position'])
+
+
+def draw_meme(message, image_path, fill_color, border_color, border_size,
+              font_path, font_size, spacing, margin_bottom, wrap_width):
+    """ Create meme for the provided text and parameters
+
+    The color parameters support the following string formats:
+
+    * Hexadecimal color specifiers, given as ``#rgb`` or ``#rrggbb``. For example,
+      ``#ff0000`` specifies pure red.
+
+    * RGB functions, given as ``rgb(red, green, blue)`` where the color values are
+      integers in the range 0 to 255. Alternatively, the color values can be given
+      as three percentages (0% to 100%). For example, ``rgb(255,0,0)`` and
+      ``rgb(100%,0%,0%)`` both specify pure red.
+
+    * Hue-Saturation-Lightness (HSL) functions, given as ``hsl(hue, saturation%,
+      lightness%)`` where hue is the color given as an angle between 0 and 360
+      (red=0, green=120, blue=240), saturation is a value between 0% and 100%
+      (gray=0%, full color=100%), and lightness is a value between 0% and 100%
+      (black=0%, normal=50%, white=100%). For example, ``hsl(0,100%,50%)`` is pure
+      red.
+
+    * Common HTML color names. 140 standard color names provided by `~PIL.ImageColor`
+      module , based on the colors supported by the X Window system and most web
+      browsers. color names are case insensitive. For example, ``red`` and``Red``
+      both specify pure red.
+
+
+    :param message: text on the meme
+    :param image_path: path or a file object of them image file
+    :param fill_color: color of the text
+    :param border_color: color of the border of the text
+    :param border_size: border width of the text
+    :param font_path: path to the true type font
+    :param font_size: font size
+    :param spacing: spacing between lines in pixel
+    :param margin_bottom: bottom margin
+    :param wrap_width: maximum width of each line in pixel
+    :return: bytes of the generated meme in PNG format
+    :rtype: bytes
+    :raise ValueError: if the text with the specified font size and margin cannot
+                       fit into the background image
+    """
     image = Image.open(image_path)
     draw = ImageDraw.Draw(image)
-    font_style = ImageFont.truetype(font, font_size)
+    font = ImageFont.truetype(font_path, font_size)
 
-    text_positions = _get_text_positions(draw, text, font_style, spacing, border_size,
-                                         image.size[0], image.size[1], y_offset, wrap_width)
+    lines = get_texts(draw, message, font, spacing, border_size,
+                      image.size[0], image.size[1], margin_bottom, wrap_width)
 
-    for sentence, position in text_positions:
+    for line, position in lines:
         for offset in product((border_size, -border_size), repeat=2):
-            offseted_position = tuple(map(sum, zip(position, offset)))
-            draw.text(offseted_position, sentence, font=font_style, fill=outline_color)
+            offset_position = tuple(map(sum, zip(position, offset)))
+            draw.text(offset_position, line, font=font, fill=border_color)
 
-        draw.text(position, sentence, font=font_style, fill=fill_color)
+        draw.text(position, line, font=font, fill=fill_color)
 
-    image.save(output_path)
+    output = BytesIO()
+    image.save(output, format='PNG')
+    return output.getvalue()
 
 
-def _get_text_positions(draw, text, font_style, spacing, border_size, image_width, image_height,
-                        y_offset, wrap_width):
-    calc_x = lambda text_width: (image_width - text_width) / 2 - border_size
-    calc_y = lambda text_height: image_height - y_offset - text_height - border_size * 2
+def get_texts(draw, message, font, spacing, border_size, image_width, image_height, margin_bottom, wrap_width):
+    """ Wrap the message into lines based on the wrap width and calculate their positions
 
-    positions = None
-    if type(text) is str:
-        text_width, text_height = draw.textsize(text, font=font_style)
-        text_x = calc_x(text_width)
-        text_y = calc_y(text_height)
+    :param draw: Draw object in PIL
+    :param message: text to be draw on the meme
+    :param font: Font object in PIL
+    :param spacing: spacing between lines in pixel
+    :param border_size: border width of the text
+    :param image_width: width of the background image
+    :param image_height: height of the background image
+    :param margin_bottom: bottom margin
+    :param wrap_width: maximum width of each line in pixel
+    :return: list of Text(text, Position(x, y))
+    :rtype: list
+    :raise ValueError: if the message with the specified font size and margin cannot
+                       fit into the background image
+    """
+    width, _ = draw.textsize(message, font=font)
+    wrap_width_char = int(len(message) / width * wrap_width)
+    lines = wrap(message, width=wrap_width_char)
 
-        if text_x >= 0:
-            positions = [(text, (text_x, text_y))]
-        else:
-            wrap_width = wrap_width or int(len(text) * image_width / text_width)
-            text = wrap(text, width=wrap_width)
+    sizes = [draw.textsize(line, font=font) for line in lines]
+    text_height = sum(map(lambda size: size[1], sizes)) + spacing * (len(lines) - 1)
+    text_y = image_height - margin_bottom - text_height - border_size
 
-    if not positions:
-        text_widths, text_heights = list(zip(*[draw.textsize(sentence, font=font_style) for sentence in text]))
-        text_width = max(text_widths)
-        text_height = sum(text_heights) + spacing * (len(text_heights) - 1)
-        text_y = calc_y(text_height)
-        positions = [(sentence, (calc_x(width), text_y + sum(text_heights[0:i]) + spacing * i))
-                     for i, sentence, width in zip(count(), text, text_widths)]
+    calc_x = lambda text_width: (image_width - text_width) / 2
+    texts = []
+    for i, line, (width, height) in zip(count(), lines, sizes):
+        x, y, text_y = calc_x(width), text_y, text_y + height + spacing
+        if x < 0 or y < 0:
+            raise ValueError('Image is too small')
+        texts.append(Text(line, Position(x, y)))
 
-    if text_y < 0:
-        raise RuntimeError('Image too small')
-
-    return positions
+    return texts

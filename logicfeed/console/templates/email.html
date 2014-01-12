@@ -1,0 +1,125 @@
+<html>
+    <body>
+        <div class="container">
+            <div class="header">
+                <div class="avatar">
+                    <img src="cid:avatar">
+                </div>
+                <div class="name-wrapper">
+                    <div class="name-pole"></div>
+                    <div class="name-container">
+                        <div class="name">{{ dst_user_name }}</div>
+                        <div class="title">{{ src_user_name }}</div>
+                    </div>
+                </div>
+                <a class="publish" href="{{ feed_id }}">Publish</a>
+            </div>
+            <div class="content">
+                <div class="content-text">{{ message }}</div>
+                <div class="content-image">
+                    <img src="cid:meme">
+                </div>
+            </div>
+        </div>
+
+        <style>
+            .container {
+                font-family: 'Helvetica Neue',Helvetica,Arial,'lucida grande',tahoma,verdana,arial,sans-serif;
+                font-size: 11px;
+                color: rgb(51, 51, 51);
+                line-height: 1.28;
+                text-align: left;
+                direction: ltr;
+                border: 1px solid rgb(211, 214, 219);
+                padding: 8px 12px 12px;
+                width: 320px;
+            }
+
+            .header {
+                margin-bottom: 5px;
+                padding-top: 5px;
+                padding-bottom: 1px;
+                border-bottom: 1px solid rgb(229, 229, 229);
+            }
+
+            .avatar {
+                margin-right: 5px;
+                display: inline-block;
+            }
+
+            .avatar img {
+                height: 32px;
+                width: 32px;
+            }
+
+            .name-wrapper {
+                display: inline-block;
+                vertical-align: top;
+            }
+
+            .name-pole {
+                height: 32px;
+                display: inline-block;
+                vertical-align: middle;
+            }
+
+            .name-container {        
+                display: inline-block;
+                vertical-align: middle;
+            }
+
+            .name {
+                color: rgb(20, 24, 35);
+                font-size: 14px;
+                font-weight: bold;
+                line-height: 18px;
+            }
+
+            .title {
+                color: gray;
+                font-size: 11px;
+                font-weight: normal;
+            }
+
+            .publish {
+                background-color: rgb(91, 116, 168);
+                border-color: rgb(41, 68, 126) rgb(41, 68, 126) rgb(26, 53, 110);
+                color: rgb(255, 255, 255);
+                border-radius: 3px;
+                padding: 5px;
+                font-family: 'lucida grande',tahoma,verdana,arial,sans-serif;
+                font-size: 12px;
+                font-weight: bold;
+                line-height: 16px;
+                text-align: center;
+                text-decoration: none;
+                vertical-align: middle;
+                float: right;
+                margin-top: 3px;
+            }
+
+            .content {
+                padding-top: 5px;
+            }
+
+            .content-text {
+                font-size: 14px;
+                line-height: 18px;
+            }
+
+            .content-image {
+                overflow: hidden;
+                width: 320px;
+                height: 320px;
+                max-height: 320px;
+                padding-top: 5px;
+            }
+
+            .content-image img {
+                width: 100%;
+                height: auto;
+            }
+        </style>
+    </body>
+</html>
+

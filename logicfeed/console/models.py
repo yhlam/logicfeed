@@ -5,6 +5,7 @@ from django.utils import timezone
 
 from singleton_models.models import SingletonModel
 
+from .meme import draw_meme
 
 User = auth.get_user_model()
 
@@ -30,12 +31,28 @@ class Feed(models.Model):
     def __str__(self):
         return 'Feed {{id: {}, text: {}, created_time: {}}}'.format(self.id, self.text, self.created_time)
 
+    def generate_meme(self, image, fill_color, border_color, border_size,
+                      font_path, font_size=None, spacing=None):
+        font_size = font_size or image.font_size
+        spacing = image.spacing if spacing is None else spacing
+        return draw_meme(self.text, image.file.path, fill_color, border_color,
+                         border_size, font_path, font_size, spacing,
+                         image.margin_bottom, image.wrap_width)
+
 
 @python_2_unicode_compatible
 class Image(models.Model):
     file = models.ImageField(upload_to='background')
     margin_bottom = models.PositiveSmallIntegerField()
     wrap_width = models.PositiveSmallIntegerField()
+
+    @property
+    def font_size(self):
+        return self.file.height // 10
+
+    @property
+    def spacing(self):
+        return self.font_size // 2
 
 
 @python_2_unicode_compatible
@@ -77,3 +94,19 @@ class Post(models.Model):
     def __str__(self):
         return 'Post {{id: {}, text: {}, created_time: {}, author: {}}}'.format(
             self.id, self.text, self.created_time, self.author)
+
+
+@python_2_unicode_compatible
+class LogicFeedConfig(SingletonModel):
+    src_user_id = models.BigIntegerField()
+    src_user_name = models.CharField(max_length=128)
+    dst_user_id = models.BigIntegerField()
+    dst_user_name = models.CharField(max_length=128)
+    avatar = models.ImageField(upload_to='config')
+    email_subject = models.CharField(max_length=128)
+    email_sender = models.EmailField()
+    fb_cookies_c_user = models.CharField(max_length=128)
+    fb_cookies_xs = models.CharField(max_length=128)
+
+    def __str__(self):
+        return "{} => {}".format(self.src_user_name, self.dst_user_name)

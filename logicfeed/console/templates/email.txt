@@ -1,0 +1,5 @@
+{{ dst_user_name }} ({{ src_user_name }}):
+
+{{ message }}
+
+Publish: {{ feed_id }}
