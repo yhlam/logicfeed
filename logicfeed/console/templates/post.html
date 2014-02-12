@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% load cycle from future %}
+
+
+{% block title %}Posts{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'css/post.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block container %}
+<div class="row">
+  <div class="col-md-4 menu">
+    <h1>WTF</h1>
+  </div>
+  <div class="posts col-md-8">
+    {% for post in posts %}
+    <div class="row">
+      <div class="col-md-12">
+        <div class="post">
+          <div class="post-avatar">
+            <img src="{{ post.avatar }}">
+          </div>
+          <div class="post-container">
+            <div class="post-header">
+              <div class="post-header-text">
+                <div class="post-header-text-name">{{ post.author }}</div>
+                <div class="post-header-text-time">{{ post.time }}</div>
+              </div>
+            </div>
+            <div class="post-content">
+              <div class="post-content-text">{{ post.message|linebreaks }}</div>
+              {% if post.image %}
+              <div class="post-content-image">
+                <img src="{{ post.image }}">
+              </div>
+              {% endif %}
+            </div>
+            <div class="post-footer">
+              <div class="post-view">
+                <a href="{{ post.view_url }}" target="_blank"><span class="glyphicon glyphicon-new-window post-view-icon"></span>View this post on Facebook</a>
+              </div>
+              {% if post.forwardable %}
+              <div class="post-forward">
+                <a href="#"><span class="glyphicon glyphicon-share-alt post-forward-icon"></span>Forward to {{ forward_to }}</a>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

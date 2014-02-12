@@ -13,3 +13,9 @@ DATABASES = {
 INSTALLED_APPS += (
     'django_extensions',
 )
+
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = 'yhlam.bot'
+EMAIL_HOST_PASSWORD = 'e2718281828'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
